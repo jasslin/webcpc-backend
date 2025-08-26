@@ -1,0 +1,164 @@
+name: Project Quality Gate
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  # =======================================================
+  # JOB 0: META-CHECK (The Guardian)
+  # Checks if critical infrastructure files were modified and warns.
+  # =======================================================
+  security-check-for-cicd-changes:
+    name: 🚨 Security Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Get changed files in the PR
+        id: changed_files
+        uses: tj-actions/changed-files@v41
+      - name: Check for critical file changes
+        id: check_files
+        run: |
+          echo "Checking for modifications in critical files..."
+          for file in ${{ steps.changed_files.outputs.all_changed_files }}; do
+            if [[ "$file" == ".github/workflows/"* || "$file" == "Dockerfile" || "$file" == "docker-compose.yml" || "$file" == "package.json" || "$file" == "package-lock.json" ]]; then
+              echo "::warning file=$file::CRITICAL FILE MODIFIED: $file. This change requires mandatory approval from a Code Owner."
+            fi
+          done
+
+  # =======================================================
+  # JOB 1: LINTING & UNIT TESTING (Fast Feedback)
+  # =======================================================
+  test-and-lint:
+    name: Lint & Unit Tests
+    runs-on: ubuntu-latest
+    needs: security-check-for-cicd-changes # Depends on the security check
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: mydatabase
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U user -d mydatabase" \
+          --health-interval 10s \
+          --health-timeout 5s \
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://user:password@localhost:5432/mydatabase
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Prettier check
+        run: npm run format:check
+
+      - name: Build
+        run: npm run build
+
+      - name: Run DB migrations
+        run: npm run db:migrate
+
+      - name: Test with coverage
+        run: npm run test:coverage
+
+  # =======================================================
+  # JOB 2: DATABASE MIGRATION VALIDATION (The Deal Breaker)
+  # =======================================================
+  validate-database-migrations:
+    name: Database Migration Validation
+    runs-on: ubuntu-latest
+    needs: test-and-lint
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_USER: user
+          POSTGRES_PASSWORD: password
+          POSTGRES_DB: mydatabase
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U user -d mydatabase" \
+          --health-interval 10s \
+          --health-timeout 5s \
+          --health-retries 5
+    env:
+      DATABASE_URL: postgres://user:password@localhost:5432/mydatabase
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate migrations
+        run: |
+          echo "Validating database migrations..."
+          npm run db:migrate up
+          echo "Migrations completed successfully"
+
+  # =======================================================
+  # JOB 3: SONARCLOUD ANALYSIS (The Quality Report)
+  # =======================================================
+  sonarcloud-scan:
+    name: SonarCloud Scan
+    runs-on: ubuntu-latest
+    needs: test-and-lint
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Test with coverage
+        run: npm run test:coverage
+
+      - name: SonarQube Scan
+        uses: SonarSource/sonarqube-scan-action@master
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+
+      - name: SonarQube Quality Gate Check
+        uses: SonarSource/sonarqube-quality-gate-action@master
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+

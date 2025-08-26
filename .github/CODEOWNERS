@@ -1,0 +1,23 @@
+# =================================================================
+# CRITICAL INFRASTRUCTURE & GOVERNANCE FILES
+#
+# Any changes to these files require MANDATORY approval from the
+# designated code owners. This is a non-negotiable security
+# and quality gate for the project.
+# =================================================================
+
+# CI/CD Workflows - The rules engine of the project
+.github/workflows/ @Jasslin
+
+# Core Docker Configuration - The foundation of the development environment
+Dockerfile @Jasslin
+docker-compose.yml @Jasslin
+.devcontainer/ @Jasslin
+
+# Project Dependencies & Scripts - Changes can affect the entire project
+package.json @Jasslin
+package-lock.json @Jasslin
+
+# Governance & Rules - The constitution of the project
+CONTRIBUTING.md @Jasslin
+CODEOWNERS @Jasslin
