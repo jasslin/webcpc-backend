@@ -41,7 +41,7 @@ jobs:
     needs: security-check-for-cicd-changes # Depends on the security check
     services:
       postgres:
-        image: postgres:15
+        image: timescale/timescaledb:pg15-latest
         env:
           POSTGRES_USER: user
           POSTGRES_PASSWORD: password
@@ -88,7 +88,7 @@ jobs:
     needs: test-and-lint
     services:
       postgres:
-        image: postgres:15
+        image: timescale/timescaledb:pg15-latest
         env:
           POSTGRES_USER: user
           POSTGRES_PASSWORD: password
@@ -114,7 +114,7 @@ jobs:
       - name: Validate migrations
         run: |
           echo "Validating database migrations..."
-          npm run db:migrate up
+          npm run db:migrate
           echo "Migrations completed successfully"
 
   # =======================================================
