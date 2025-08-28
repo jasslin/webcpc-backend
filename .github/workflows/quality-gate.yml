@@ -48,11 +48,7 @@ jobs:
           POSTGRES_DB: mydatabase
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U user -d mydatabase" \
-          --health-interval 10s \
-          --health-timeout 5s \
-          --health-retries 5
+        options: --health-cmd "pg_isready -U user -d mydatabase" --health-interval 10s --health-timeout 5s --health-retries 5
     env:
       DATABASE_URL: postgres://user:password@localhost:5432/mydatabase
     steps:
@@ -99,11 +95,7 @@ jobs:
           POSTGRES_DB: mydatabase
         ports:
           - 5432:5432
-        options: >-
-          --health-cmd "pg_isready -U user -d mydatabase" \
-          --health-interval 10s \
-          --health-timeout 5s \
-          --health-retries 5
+        options: --health-cmd "pg_isready -U user -d mydatabase" --health-interval 10s --health-timeout 5s --health-retries 5
     env:
       DATABASE_URL: postgres://user:password@localhost:5432/mydatabase
     steps:
