@@ -11,7 +11,9 @@
     "format": "prettier --write \"src/**/*.ts\"",
     "format:check": "prettier --check \"src/**/*.ts\"",
     "test": "jest --detectOpenHandles --passWithNoTests",
-    "db:migrate": "node-pg-migrate",
+    "db:migrate": "node-pg-migrate up",
+    "db:migrate:up": "node-pg-migrate up",
+    "db:migrate:down": "node-pg-migrate down",
     "db:migrate:create": "node-pg-migrate create"
   },
   "engines": {
