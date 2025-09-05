@@ -23,6 +23,13 @@ Welcome to the VDRS Telemetry System documentation. This comprehensive guide wil
 - **[Security Status](../SECURITY_STATUS.md)** - Security and governance overview
 - **[Setup Guide](../SETUP_GUIDE.md)** - Manual security configuration
 
+## Database
+- [Database Schema Reference](./DATABASE_SCHEMA_REFERENCE.md)
+- [Database Usage Guide (Table Usage & Query Patterns)](./DATABASE_SCHEMA_REFERENCE.md#usage-guidance)
+
+## Onboarding
+- [External Team Onboarding Guide](./EXTERNAL_TEAM_ONBOARDING.md)
+
 ## 🎯 Quick Navigation
 
 ### For New Developers
